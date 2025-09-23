@@ -1,0 +1,19 @@
+<!-- extend base layout --> {% extends "base.html" %}  {% block content %}
+
+<h4>{{ title }}</h4>
+<p>{{ example["ExampleDescription"] | safe }}</p>
+<p>{{ session["manifest"]["SupportingTexts"]["HelpingTexts"]["EnvelopeWillBeRestored"].format(envelope_id) | safe }}</p>
+
+{%  set form_index = 0 %}
+{%  set envelope_id_index = 0 %}
+
+<form class="eg" action="" method="post" data-busy="form">
+    {% if 'FormName' in example['Forms'][recipient_form_index] %}
+        <p>{{ example['Forms'][recipient_form_index]['FormName'] | safe }}</p>
+    {% endif %}
+
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    {% include 'submit_button.html' %}
+  </form>
+  
+{% endblock %}
