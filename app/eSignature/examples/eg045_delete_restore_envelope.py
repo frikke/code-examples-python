@@ -24,3 +24,13 @@ class Eg045DeleteRestoreEnvelopeController:
         results = folders_api.move_envelopes(account_id=args["account_id"], folder_id=args["folder_id"], folders_request=folders_request)
         #ds-snippet-end:eSign45Step4
         return results
+
+    @staticmethod
+    def get_folders(args):
+        api_client = create_api_client(base_path=args["base_path"], access_token=args["access_token"])
+        folders_api = FoldersApi(api_client)
+
+        #ds-snippet-start:eSign45Step5
+        results = folders_api.list(account_id=args["account_id"])
+        #ds-snippet-end:eSign45Step5
+        return results

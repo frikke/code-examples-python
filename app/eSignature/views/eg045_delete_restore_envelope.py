@@ -1,4 +1,4 @@
-""" Example 045: Delete and Restore an Envelope """
+""" Example 045: Delete and undelete an Envelope """
 
 from os import path
 
@@ -6,6 +6,7 @@ from docusign_esign.client.api_exception import ApiException
 from flask import render_template, session, Blueprint, request, redirect
 
 from ..examples.eg045_delete_restore_envelope import Eg045DeleteRestoreEnvelopeController
+from ..utils import get_folder_id_by_name
 from ...docusign import authenticate, ensure_manifest, get_example_by_number
 from ...ds_config import DS_CONFIG
 from ...error_handlers import process_error
@@ -54,7 +55,7 @@ def delete_envelope():
     return render_template(
         "example_done.html",
         title=example["ExampleName"],
-        message=additional_page_data["ResultsPageText"],
+        message=additional_page_data["ResultsPageText"].format(args["envelope_id"]),
         redirect_url=restore_endpoint
     )
 
@@ -69,26 +70,43 @@ def restore_envelope():
     """
 
     # 1. Get required arguments
+    folder_name = pattern.sub("", request.form.get("folder_name"))
     args = {
         "account_id": session["ds_account_id"],
         "base_path": session["ds_base_path"],
         "access_token": session["ds_access_token"],
         "envelope_id": pattern.sub("", session.get("envelope_id")),
-        "folder_id": restore_folder_id,
         "from_folder_id": delete_folder_id
     }
+
+    example = get_example_by_number(session["manifest"], example_number, api)
     try:
         # 2. Call the worker method
+        folders = Eg045DeleteRestoreEnvelopeController.get_folders(args)
+        args["folder_id"] = get_folder_id_by_name(folders.folders, folder_name)
+
+        if args["folder_id"] is None:
+            additional_page_data = next(
+                (p for p in example["AdditionalPage"] if p["Name"] == "folder_does_not_exist"), 
+                None
+            )
+
+            return render_template(
+                "example_done.html",
+                title=example["ExampleName"],
+                message=additional_page_data["ResultsPageText"].format(folder_name),
+                redirect_url=restore_endpoint
+            )
+
         Eg045DeleteRestoreEnvelopeController.move_envelope(args)
     except ApiException as err:
         return process_error(err)
 
     # 3. Render success response with envelopeId
-    example = get_example_by_number(session["manifest"], example_number, api)
     return render_template(
         "example_done.html",
         title=example["ExampleName"],
-        message=example["ResultsPageText"]
+        message=example["ResultsPageText"].format(session.get("envelope_id", ""), args["folder_id"], folder_name)
     )
 
 @eg045.route(f"/{eg}", methods=["GET"])
