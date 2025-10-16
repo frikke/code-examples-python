@@ -36,7 +36,7 @@ def delete_envelope():
         "base_path": session["ds_base_path"],
         "access_token": session["ds_access_token"],
         "envelope_id": pattern.sub("", request.form.get("envelope_id")),
-        "folder_id": delete_folder_id
+        "delete_folder_id": delete_folder_id
     }
     try:
         # 2. Call the worker method

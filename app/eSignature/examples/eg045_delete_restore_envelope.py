@@ -18,7 +18,7 @@ class Eg045DeleteRestoreEnvelopeController:
         #ds-snippet-end:eSign45Step3
 
         #ds-snippet-start:eSign45Step4
-        results = folders_api.move_envelopes(account_id=args["account_id"], folder_id=args["folder_id"], folders_request=folders_request)
+        results = folders_api.move_envelopes(account_id=args["account_id"], folder_id=args["delete_folder_id"], folders_request=folders_request)
         #ds-snippet-end:eSign45Step4
         return results
 
