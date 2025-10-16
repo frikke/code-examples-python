@@ -40,7 +40,7 @@ def delete_envelope():
     }
     try:
         # 2. Call the worker method
-        Eg045DeleteRestoreEnvelopeController.move_envelope(args)
+        Eg045DeleteRestoreEnvelopeController.delete_envelope(args)
     except ApiException as err:
         return process_error(err)
 
@@ -98,7 +98,7 @@ def restore_envelope():
                 redirect_url=restore_endpoint
             )
 
-        Eg045DeleteRestoreEnvelopeController.move_envelope(args)
+        Eg045DeleteRestoreEnvelopeController.move_envelope_to_folder(args)
     except ApiException as err:
         return process_error(err)
 
