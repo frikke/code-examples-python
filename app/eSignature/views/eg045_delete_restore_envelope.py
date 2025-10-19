@@ -36,11 +36,11 @@ def delete_envelope():
         "base_path": session["ds_base_path"],
         "access_token": session["ds_access_token"],
         "envelope_id": pattern.sub("", request.form.get("envelope_id")),
-        "folder_id": delete_folder_id
+        "delete_folder_id": delete_folder_id
     }
     try:
         # 2. Call the worker method
-        Eg045DeleteRestoreEnvelopeController.move_envelope(args)
+        Eg045DeleteRestoreEnvelopeController.delete_envelope(args)
     except ApiException as err:
         return process_error(err)
 
@@ -98,7 +98,7 @@ def restore_envelope():
                 redirect_url=restore_endpoint
             )
 
-        Eg045DeleteRestoreEnvelopeController.move_envelope(args)
+        Eg045DeleteRestoreEnvelopeController.move_envelope_to_folder(args)
     except ApiException as err:
         return process_error(err)
 
