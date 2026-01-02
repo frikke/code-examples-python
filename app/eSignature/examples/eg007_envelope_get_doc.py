@@ -1,6 +1,7 @@
 from datetime import datetime as dt, timezone
 from docusign_esign import EnvelopesApi
 from flask import request, session
+from werkzeug.utils import secure_filename
 
 from ...consts import pattern
 from ...docusign import create_api_client
@@ -75,5 +76,8 @@ class Eg007EnvelopeGetDocController:
             mimetype = "application/zip"
         else:
             mimetype = "application/octet-stream"
+
+        # Sanitize the document name before using it as a download filename
+        doc_name = secure_filename(doc_name)
 
         return {"mimetype": mimetype, "doc_name": doc_name, "data": document_bytes}
