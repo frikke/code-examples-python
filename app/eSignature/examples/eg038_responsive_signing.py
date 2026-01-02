@@ -36,8 +36,7 @@ class Eg038ResponsiveSigning:
             "cc_email": cc_email,
             "cc_name": cc_name,
             "signer_client_id": signer_client_id,
-            "ds_return_url": url_for("ds.ds_return", _external=True),
-            "doc_file": path.join(demo_docs_path, order_form_html_file)
+            "ds_return_url": url_for("ds.ds_return", _external=True)
         }
         args = {
             "account_id": session["ds_account_id"],
@@ -213,7 +212,7 @@ class Eg038ResponsiveSigning:
 
     @classmethod
     def get_html_content(cls, args):
-        with open(args["doc_file"], "r") as file:
+        with open(path.join(demo_docs_path, order_form_html_file), "r") as file:
             doc_html = file.read()
 
         return doc_html.replace("{signer_name}", args["signer_name"]) \
