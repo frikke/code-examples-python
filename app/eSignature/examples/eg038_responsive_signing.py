@@ -15,7 +15,7 @@ from docusign_esign import (
 )
 from flask import session, url_for, request
 
-from ...consts import authentication_method, demo_docs_path, pattern, signer_client_id
+from ...consts import authentication_method, demo_docs_path, order_form_html_file, pattern, signer_client_id
 from ...docusign import create_api_client
 
 
@@ -37,7 +37,7 @@ class Eg038ResponsiveSigning:
             "cc_name": cc_name,
             "signer_client_id": signer_client_id,
             "ds_return_url": url_for("ds.ds_return", _external=True),
-            "doc_file": path.join(demo_docs_path, "order_form.html")
+            "doc_file": path.join(demo_docs_path, order_form_html_file)
         }
         args = {
             "account_id": session["ds_account_id"],
