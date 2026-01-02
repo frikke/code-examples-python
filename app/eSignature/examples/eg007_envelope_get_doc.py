@@ -41,7 +41,7 @@ class Eg007EnvelopeGetDocController:
         document_id = args["document_id"]
 
         # Call the envelope get method to get the path of the temp file with the documents
-        (temp_file_path, status, headers) = envelope_api.get_document_with_http_info(
+        (document_bytes, status, headers) = envelope_api.get_document_with_http_info(
             account_id=args["account_id"],
             document_id=document_id,
             envelope_id=args["envelope_id"]
@@ -76,4 +76,4 @@ class Eg007EnvelopeGetDocController:
         else:
             mimetype = "application/octet-stream"
 
-        return {"mimetype": mimetype, "doc_name": doc_name, "data": temp_file_path}
+        return {"mimetype": mimetype, "doc_name": doc_name, "data": document_bytes}
