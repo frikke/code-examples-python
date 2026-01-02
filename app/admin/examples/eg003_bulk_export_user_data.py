@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_admin import ApiClient
 from docusign_admin.apis import BulkExportsApi
 from flask import session
@@ -28,12 +29,20 @@ class Eg003BulkExportUserDataController:
 
         # Create a user list export request
         #ds-snippet-start:Admin3Step3
-        response = export_api.create_user_list_export(
+        (response, status, headers) = export_api.create_user_list_export_with_http_info(
             organization_id,
             {
                 "type": "organization_memberships_export"
             }
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Admin3Step3
 
         # Save user_list_export_id in a client session
@@ -68,10 +77,18 @@ class Eg003BulkExportUserDataController:
 
         # Getting the user list export response
         #ds-snippet-start:Admin3Step4
-        response = export_api.get_user_list_export(
+        (response, status, headers) = export_api.get_user_list_export_with_http_info(
             organization_id,
             session['user_list_export_id']
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Admin3Step4
 
         # Trying to get the user list export id

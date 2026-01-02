@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_esign import AccountsApi, Brand
 from flask import session, request
 from ...docusign import create_api_client
@@ -38,6 +39,15 @@ class Eg028BrandCreatingController:
         # Step 4. Call the eSignature REST API
         #ds-snippet-start:eSign28Step4
         account_api = AccountsApi(api_client)
-        response = account_api.create_brand(account_id=args["account_id"], brand=brand)
+        (response, status, headers) = account_api.create_brand_with_http_info(account_id=args["account_id"], brand=brand)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign28Step4
+
         return response

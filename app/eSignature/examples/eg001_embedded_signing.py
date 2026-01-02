@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime as dt, timezone
 from os import path
 
 from docusign_esign import EnvelopesApi, RecipientViewRequest, Document, Signer, EnvelopeDefinition, SignHere, Tabs, \
@@ -51,9 +52,17 @@ class Eg001EmbeddedSigningController:
         api_client = create_api_client(base_path=args["base_path"], access_token=args["access_token"])
 
         envelope_api = EnvelopesApi(api_client)
-        results = envelope_api.create_envelope(account_id=args["account_id"], envelope_definition=envelope_definition)
+        (data, status, headers) = envelope_api.create_envelope_with_http_info(account_id=args["account_id"], envelope_definition=envelope_definition)
 
-        envelope_id = results.envelope_id
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
+        envelope_id = data.envelope_id
         #ds-snippet-end:eSign1Step3
 
         # 3. Create the Recipient View request object
@@ -72,13 +81,21 @@ class Eg001EmbeddedSigningController:
         # Exceptions will be caught by the calling function
         
         #ds-snippet-start:eSign1Step5
-        results = envelope_api.create_recipient_view(
+        (data, status, headers) = envelope_api.create_recipient_view_with_http_info(
             account_id=args["account_id"],
             envelope_id=envelope_id,
             recipient_view_request=recipient_view_request
         )
 
-        return {"envelope_id": envelope_id, "redirect_url": results.url}
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
+        return {"envelope_id": envelope_id, "redirect_url": data.url}
         #ds-snippet-end:eSign1Step5
 
     @classmethod

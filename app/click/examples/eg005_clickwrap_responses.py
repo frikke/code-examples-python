@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_click import AccountsApi
 from flask import request, session
 
@@ -30,11 +31,19 @@ class Eg005ClickwrapResponsesController:
         # Step 2. Get clickwrap responses using SDK
         #ds-snippet-start:Click5Step3
         accounts_api = AccountsApi(api_client)
-        response = accounts_api.get_clickwrap_agreements(
+        (response, status, headers) = accounts_api.get_clickwrap_agreements_with_http_info(
             account_id=args["account_id"],
             clickwrap_id=args["clickwrap_id"],
             status="agreed"
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Click5Step3
 
         return response

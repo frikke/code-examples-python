@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime as dt, timezone
 from os import path
 
 from docusign_esign import (
@@ -65,10 +66,18 @@ class Eg034UseConditionalRecipientsController:
         # Exceptions will be caught by the calling function
         #ds-snippet-start:eSign34Step4
         envelopes_api = EnvelopesApi(api_client)
-        results = envelopes_api.create_envelope(
+        (results, status, headers) = envelopes_api.create_envelope_with_http_info(
             account_id=args["account_id"],
             envelope_definition=envelope_definition
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign34Step4
 
         return {"envelope_id": results.envelope_id}

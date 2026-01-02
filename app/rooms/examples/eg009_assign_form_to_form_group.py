@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_rooms import (
     FormGroupsApi,
     FormGroupSummaryList,
@@ -35,10 +36,19 @@ class Eg009AssignFormToFormGroupController:
 
         #ds-snippet-start:Rooms9Step4
         form_groups_api = FormGroupsApi(api_client)
-        response = form_groups_api.get_form_groups(
+        (response, status, headers) = form_groups_api.get_form_groups_with_http_info(
             account_id=args["account_id"]
         )  # type: FormGroupSummaryList
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Rooms9Step4
+
         return response.form_groups
 
     @staticmethod
@@ -54,16 +64,32 @@ class Eg009AssignFormToFormGroupController:
 
         #ds-snippet-start:Rooms9Step3
         form_libraries_api = FormLibrariesApi(api_client)
-        form_libraries = form_libraries_api.get_form_libraries(
+        (form_libraries, status, headers) = form_libraries_api.get_form_libraries_with_http_info(
             account_id=args["account_id"]
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
 
         first_form_library_id = form_libraries.forms_library_summaries[0].forms_library_id
 
         # Get forms
-        form_library_forms = form_libraries_api.get_form_library_forms(
+        (form_library_forms, status, headers) = form_libraries_api.get_form_library_forms_with_http_info(
             form_library_id=first_form_library_id, account_id=args["account_id"]
         )   # type: FormSummaryList
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Rooms9Step3
         
         return form_library_forms.forms
@@ -92,10 +118,18 @@ class Eg009AssignFormToFormGroupController:
 
         # Assign form to a form group via FormGroups API
         #ds-snippet-start:Rooms9Step6
-        response = form_groups_api.assign_form_group_form(
+        (response, status, headers) = form_groups_api.assign_form_group_form_with_http_info(
             form_group_id=args["form_group_id"], account_id=args["account_id"],
             body=form_group_to_assign
         )   # type: FormGroupFormToAssign
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Rooms9Step6
 
         return response

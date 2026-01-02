@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_rooms import FormGroupForCreate, FormGroupsApi
 from flask import session, request
 
@@ -31,9 +32,17 @@ class Eg007CreateFormGroupController:
         # Post the form object using SDK
         #ds-snippet-start:Rooms7Step4
         form_groups_api = FormGroupsApi(api_client)
-        response = form_groups_api.create_form_group(
+        (response, status, headers) = form_groups_api.create_form_group_with_http_info(
             body=form, account_id=args["account_id"]
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Rooms7Step4
 
         return response

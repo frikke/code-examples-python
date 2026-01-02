@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime as dt, timezone
 from os import path
 
 from docusign_esign import EnvelopesApi, EnvelopeDefinition, Document, Signer, SignHere, Tabs, Recipients, \
@@ -56,7 +57,15 @@ class Eg016SetTabValuesController:
 
         #ds-snippet-start:eSign16Step4
         envelopes_api = EnvelopesApi(api_client)
-        results = envelopes_api.create_envelope(account_id=args["account_id"], envelope_definition=envelope_definition)
+        (results, status, headers) = envelopes_api.create_envelope_with_http_info(account_id=args["account_id"], envelope_definition=envelope_definition)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
 
         envelope_id = results.envelope_id
         #ds-snippet-end:eSign16Step4
@@ -72,11 +81,19 @@ class Eg016SetTabValuesController:
         )
         # Obtain the recipient view URL for the embedded signing
         # Exceptions will be caught by the calling function
-        results = envelopes_api.create_recipient_view(
+        (results, status, headers) = envelopes_api.create_recipient_view_with_http_info(
             account_id=args["account_id"],
             envelope_id=envelope_id,
             recipient_view_request=recipient_view_request
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
 
         return {"envelope_id": envelope_id, "redirect_url": results.url}
         #ds-snippet-end:eSign16Step5

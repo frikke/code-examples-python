@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime as dt, timezone
 from os import path
 
 from docusign_esign import EnvelopesApi, RecipientViewRequest, Document, Signer, EnvelopeDefinition, SignHere, Tabs, \
@@ -51,7 +52,15 @@ class Eg039InPersonSigner:
         api_client = create_api_client(base_path=args["base_path"], access_token=args["access_token"])
 
         envelope_api = EnvelopesApi(api_client)
-        results = envelope_api.create_envelope(account_id=args["account_id"], envelope_definition=envelope_definition)
+        (results, status, headers) = envelope_api.create_envelope_with_http_info(account_id=args["account_id"], envelope_definition=envelope_definition)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
 
         envelope_id = results.envelope_id
         #ds-snippet-end:eSign39Step3
@@ -70,11 +79,20 @@ class Eg039InPersonSigner:
         # Obtain the recipient_view_url for the embedded signing session
         # Exceptions will be caught by the calling function
         #ds-snippet-start:eSign39Step5
-        results = envelope_api.create_recipient_view(
+        (results, status, headers) = envelope_api.create_recipient_view_with_http_info(
             account_id=args["account_id"],
             envelope_id=envelope_id,
             recipient_view_request=recipient_view_request
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         return {"envelope_id": envelope_id, "redirect_url": results.url}
         #ds-snippet-end:eSign39Step5
 

@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_esign import EnvelopesApi
 from flask import request, session
 
@@ -40,11 +41,19 @@ class Eg007EnvelopeGetDocController:
         document_id = args["document_id"]
 
         # Call the envelope get method to get the path of the temp file with the documents
-        temp_file_path = envelope_api.get_document(
+        (temp_file_path, status, headers) = envelope_api.get_document_with_http_info(
             account_id=args["account_id"],
             document_id=document_id,
             envelope_id=args["envelope_id"]
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign7Step3
         
         doc_item = next(item for item in args["envelope_documents"]["documents"] if item["document_id"] == document_id)

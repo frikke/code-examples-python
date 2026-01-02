@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_esign import AccountsApi
 from docusign_esign.client.api_exception import ApiException
 from flask import session, request
@@ -30,9 +31,17 @@ class Eg027PermissionsDeleteController:
         
         # Step 3. Call the eSignature REST API
         #ds-snippet-start:eSign27Step3
-        account_api.delete_permission_profile(
+        (response, status, headers) = account_api.delete_permission_profile_with_http_info(
             account_id=args["account_id"],
             permission_profile_id=args["permission_profile_id"])
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign27Step3
 
     @staticmethod
@@ -42,7 +51,15 @@ class Eg027PermissionsDeleteController:
 
         try:
             account_api = AccountsApi(api_client)
-            response = account_api.list_permissions(account_id=args["account_id"])
+            (response, status, headers) = account_api.list_permissions_with_http_info(account_id=args["account_id"])
+
+            remaining = headers.get("X-RateLimit-Remaining")
+            reset = headers.get("X-RateLimit-Reset")
+
+            if remaining is not None and reset is not None:
+                reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+                print(f"API calls remaining: {remaining}")
+                print(f"Next Reset: {reset_date}")
 
             return response.permission_profiles
 

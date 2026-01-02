@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_admin import ApiClient, UsersApi
 from flask import session, request
 
@@ -39,9 +40,17 @@ class Eg006GetUserProfileByEmailController:
         #ds-snippet-start:Admin6Step3
         users_api = UsersApi(api_client=api_client)
 
-        results = users_api.get_user_ds_profiles_by_email(
+        (results, status, headers) = users_api.get_user_ds_profiles_by_email_with_http_info(
             organization_id=org_id,
             email=email)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Admin6Step3
 
         return results

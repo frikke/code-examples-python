@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_admin import (
     ApiClient,
     ProductPermissionProfilesApi,
@@ -31,11 +32,20 @@ class Eg009DeleteUserProductPermissionProfileController:
         )
         #ds-snippet-start:Admin9Step3
         product_permission_profiles_api = ProductPermissionProfilesApi(api_client=api_client)
-        profiles = product_permission_profiles_api.get_user_product_permission_profiles_by_email(
+        (profiles, status, headers) = product_permission_profiles_api.get_user_product_permission_profiles_by_email_with_http_info(
             organization_id=get_organization_id(),
             account_id=session["ds_account_id"],
             email=session["clm_email"]
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         profiles_list = profiles.to_dict()["product_permission_profiles"]
         #ds-snippet-end:Admin9Step3
         return profiles_list
@@ -71,11 +81,19 @@ class Eg009DeleteUserProductPermissionProfileController:
 
         #ds-snippet-start:Admin9Step5
         product_permission_profiles_api = ProductPermissionProfilesApi(api_client=api_client)
-        response = product_permission_profiles_api.remove_user_product_permission(
+        (response, status, headers) = product_permission_profiles_api.remove_user_product_permission_with_http_info(
             organization_id=org_id,
             account_id=account_id,
             user_product_permission_profiles_request=user_product_profile_delete_request
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Admin9Step5
 
         return response.to_dict()

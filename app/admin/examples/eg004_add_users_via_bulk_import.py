@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from os import path
 from docusign_admin.apis import BulkImportsApi
 from flask import session, Response
@@ -67,10 +68,18 @@ class Eg004AddUsersViaBulkImportController:
         api_client.set_default_header(header_name, header_value)
 
         # Returns the response from the create_bulk_import_add_users_request method
-        response = import_api.create_bulk_import_add_users_request(
+        (response, status, headers) = import_api.create_bulk_import_add_users_request_with_http_info(
             organization_id,
             csv_file_path
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Admin4Step3
 
         # Save user list import id in a client session
@@ -92,7 +101,18 @@ class Eg004AddUsersViaBulkImportController:
         import_api = BulkImportsApi(api_client=api_client)
 
         #ds-snippet-start:Admin4Step4
-        import_results = import_api.get_bulk_user_import_request(organization_id, session['import_data_id'])
+        (import_results, status, headers) = import_api.get_bulk_user_import_request_with_http_info(
+            organization_id,
+            session['import_data_id']
+        )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Admin4Step4
 
         if import_results.status == "completed":

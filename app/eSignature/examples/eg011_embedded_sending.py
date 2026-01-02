@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime as dt, timezone
 from os import path
 
 from docusign_esign import EnvelopesApi, EnvelopesApi, EnvelopeDefinition, \
@@ -65,11 +66,19 @@ class Eg011EmbeddedSendingController:
         api_client = create_api_client(base_path=args["base_path"], access_token=args["access_token"])
 
         envelope_api = EnvelopesApi(api_client)
-        sender_view = envelope_api.create_sender_view(
+        (sender_view, status, headers) = envelope_api.create_sender_view_with_http_info(
             account_id=args["account_id"],
             envelope_id=envelope_id,
             envelope_view_request=view_request
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
 
         # Switch to Recipient and Documents view if requested by the user
         url = sender_view.url
@@ -121,7 +130,17 @@ class Eg011EmbeddedSendingController:
         # Call Envelopes::create API method
         # Exceptions will be caught by the calling function
         envelopes_api = EnvelopesApi(api_client)
-        return envelopes_api.create_envelope(account_id=args["account_id"], envelope_definition=envelope_definition)
+        (envelope, status, headers) = envelopes_api.create_envelope_with_http_info(account_id=args["account_id"], envelope_definition=envelope_definition)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
+        return envelope
 
     @classmethod
     def make_envelope(cls, args, doc_docx_path, doc_pdf_path):

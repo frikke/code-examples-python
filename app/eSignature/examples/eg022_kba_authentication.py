@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime as dt, timezone
 from os import path
 
 from docusign_esign import EnvelopesApi, EnvelopeDefinition, Document, Signer, SignHere, Tabs, Recipients
@@ -97,6 +98,15 @@ class Eg022KBAAuthenticationController:
         # Call the eSignature REST API
         #ds-snippet-start:eSign22Step4
         envelope_api = EnvelopesApi(api_client)
-        results = envelope_api.create_envelope(account_id=args["account_id"], envelope_definition=envelope_definition)
+        (results, status, headers) = envelope_api.create_envelope_with_http_info(account_id=args["account_id"], envelope_definition=envelope_definition)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         #ds-snippet-end:eSign22Step4
         return results
