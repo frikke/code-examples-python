@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_rooms import FormForAdd, FormLibrariesApi, RoomsApi
 from flask import session, request
 
@@ -28,7 +29,16 @@ class Eg004AddFormsToRoomController:
 
         # Step 2. Get rooms
         rooms_api = RoomsApi(api_client)
-        rooms = rooms_api.get_rooms(account_id=args["account_id"])
+        (rooms, status, headers) = rooms_api.get_rooms_with_http_info(account_id=args["account_id"])
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         return rooms.rooms
 
     @staticmethod
@@ -44,16 +54,34 @@ class Eg004AddFormsToRoomController:
         # Step 2. Get first form library id
         #ds-snippet-start:Rooms4Step3
         form_libraries_api = FormLibrariesApi(api_client)
-        form_libraries = form_libraries_api.get_form_libraries(account_id=args["account_id"])
+        (form_libraries, status, headers) = form_libraries_api.get_form_libraries_with_http_info(account_id=args["account_id"])
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         first_form_library_id = form_libraries.forms_library_summaries[10].forms_library_id
         #ds-snippet-end:Rooms4Step3
 
         # Step 3. Get forms
         #ds-snippet-start:Rooms4Step2
-        form_library_forms = form_libraries_api.get_form_library_forms(
+        (form_library_forms, status, headers) = form_libraries_api.get_form_library_forms_with_http_info(
             form_library_id=first_form_library_id,
             account_id=args["account_id"]
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         #ds-snippet-end:Rooms4Step3
         return form_library_forms.forms
 
@@ -69,10 +97,19 @@ class Eg004AddFormsToRoomController:
         # Step 2. Add the form to the room
         #ds-snippet-start:Rooms4Step4
         rooms_api = RoomsApi(api_client)
-        response = rooms_api.add_form_to_room(
+        (response, status, headers) = rooms_api.add_form_to_room_with_http_info(
             room_id=args['room_id'],
             body=FormForAdd(form_id=args['form_id']),
             account_id=args["account_id"]
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Rooms4Step4
+
         return response

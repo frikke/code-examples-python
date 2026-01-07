@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_admin import ApiClient, ProvisionAssetGroupApi, SubAccountCreateRequest, \
     SubAccountCreateRequestSubAccountCreationSubscription, \
     SubAccountCreateRequestSubAccountCreationTargetAccountDetails, \
@@ -67,7 +68,15 @@ class Eg013CreateAccountController:
 
         #ds-snippet-start:Admin13Step5
         asset_group_api = ProvisionAssetGroupApi(api_client=api_client)
-        results = asset_group_api.create_asset_group_account(args["organization_id"], account_data)
+        (results, status, headers) = asset_group_api.create_asset_group_account_with_http_info(args["organization_id"], account_data)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Admin13Step5
 
         return results
@@ -83,7 +92,15 @@ class Eg013CreateAccountController:
 
         #ds-snippet-start:Admin13Step3
         asset_group_api = ProvisionAssetGroupApi(api_client=api_client)
-        plan_items = asset_group_api.get_organization_plan_items(args["organization_id"])
+        (plan_items, status, headers) = asset_group_api.get_organization_plan_items_with_http_info(args["organization_id"])
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Admin13Step3
 
         return plan_items

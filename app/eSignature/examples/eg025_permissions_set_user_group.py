@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_esign import AccountsApi, Group, GroupInformation, GroupsApi
 from docusign_esign.client.api_exception import ApiException
 from flask import session, request
@@ -38,8 +39,17 @@ class Eg025PermissionsSetUserGroupController:
 
         # Call the eSignature REST API
         #ds-snippet-start:eSign25Step4
-        response = group_api.update_groups(account_id=args["account_id"], group_information=group_information)
+        (response, status, headers) = group_api.update_groups_with_http_info(account_id=args["account_id"], group_information=group_information)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign25Step4
+
         return response
 
     @staticmethod
@@ -49,8 +59,25 @@ class Eg025PermissionsSetUserGroupController:
         try:
             account_api = AccountsApi(api_client)
             group_api = GroupsApi(api_client)
-            permission_profiles = account_api.list_permissions(account_id=args["account_id"]).permission_profiles
-            groups = group_api.list_groups(account_id=args["account_id"]).groups
+            (permission_profiles, status, headers) = account_api.list_permissions_with_http_info(account_id=args["account_id"]).permission_profiles
+
+            remaining = headers.get("X-RateLimit-Remaining")
+            reset = headers.get("X-RateLimit-Reset")
+
+            if remaining is not None and reset is not None:
+                reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+                print(f"API calls remaining: {remaining}")
+                print(f"Next Reset: {reset_date}")
+            
+            (groups, status, headers) = group_api.list_groups_with_http_info(account_id=args["account_id"]).groups
+
+            remaining = headers.get("X-RateLimit-Remaining")
+            reset = headers.get("X-RateLimit-Reset")
+
+            if remaining is not None and reset is not None:
+                reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+                print(f"API calls remaining: {remaining}")
+                print(f"Next Reset: {reset_date}")
 
             return permission_profiles, groups
 

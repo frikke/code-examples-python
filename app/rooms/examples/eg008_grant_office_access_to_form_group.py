@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_rooms import (
     FormGroupsApi,
     FormGroupSummaryList,
@@ -32,7 +33,15 @@ class Eg008GrantOfficeAccessToFormGroupController:
         # GET Form Groups via FormGroupsAPI
         #ds-snippet-start:Rooms8Step4
         form_groups_api = FormGroupsApi(api_client)
-        response = form_groups_api.get_form_groups(account_id=args["account_id"])  # type: FormGroupSummaryList
+        (response, status, headers) = form_groups_api.get_form_groups_with_http_info(account_id=args["account_id"])  # type: FormGroupSummaryList
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
 
         return response.form_groups
         #ds-snippet-end:Rooms8Step4        
@@ -52,7 +61,15 @@ class Eg008GrantOfficeAccessToFormGroupController:
         # GET offices via OfficesAPI
         #ds-snippet-start:Rooms8Step3
         offices_api = OfficesApi(api_client=api_client)
-        response = offices_api.get_offices(account_id=args["account_id"])  # type: OfficeSummaryList
+        (response, status, headers) = offices_api.get_offices_with_http_info(account_id=args["account_id"])  # type: OfficeSummaryList
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
 
         return response.office_summaries
         #ds-snippet-end:Rooms8Step3
@@ -70,8 +87,16 @@ class Eg008GrantOfficeAccessToFormGroupController:
         #ds-snippet-start:Rooms8Step5
         form_groups_api = FormGroupsApi(api_client)
 
-        form_groups_api.grant_office_access_to_form_group(
+        (response, status, headers) = form_groups_api.grant_office_access_to_form_group_with_http_info(
             form_group_id=args["form_group_id"], office_id=args["office_id"],
             account_id=args["account_id"]
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Rooms8Step5

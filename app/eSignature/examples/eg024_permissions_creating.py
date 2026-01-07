@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_esign import AccountsApi, PermissionProfile
 from flask import session, request
 
@@ -42,10 +43,18 @@ class Eg024PermissionsCreatingController:
         # Call the eSignature REST API
         #ds-snippet-start:eSign24Step4
         account_api = AccountsApi(api_client)
-        response = account_api.create_permission_profile(
+        (response, status, headers) = account_api.create_permission_profile_with_http_info(
             account_id=args["account_id"],
             permission_profile=permission_profile
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign24Step4
 
         return response

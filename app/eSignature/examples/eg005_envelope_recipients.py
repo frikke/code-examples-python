@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_esign import EnvelopesApi
 from flask import session
 
@@ -29,7 +30,15 @@ class Eg005EnvelopeRecipientsController:
 
         envelope_api = EnvelopesApi(api_client)
         # Call the envelope recipients list method
-        results = envelope_api.list_recipients(account_id=args["account_id"], envelope_id=args["envelope_id"])
+        (data, status, headers) = envelope_api.list_recipients_with_http_info(account_id=args["account_id"], envelope_id=args["envelope_id"])
 
-        return results
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
+        return data
     #ds-snippet-end:eSign5Step2

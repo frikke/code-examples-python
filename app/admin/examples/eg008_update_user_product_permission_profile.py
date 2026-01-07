@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_admin import (
     ApiClient,
     ProductPermissionProfilesApi,
@@ -33,10 +34,19 @@ class Eg008UpdateUserProductPermissionProfileController:
         )
 
         product_permission_profiles_api = ProductPermissionProfilesApi(api_client=api_client)
-        profiles = product_permission_profiles_api.get_product_permission_profiles(
+        (profiles, status, headers) = product_permission_profiles_api.get_product_permission_profiles_with_http_info(
             organization_id=get_organization_id(),
             account_id=session["ds_account_id"]
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         profiles_list = profiles.to_dict()["product_permission_profiles"]
         return profiles_list
 
@@ -76,11 +86,19 @@ class Eg008UpdateUserProductPermissionProfileController:
 
         #ds-snippet-start:Admin8Step4
         product_permission_profiles_api = ProductPermissionProfilesApi(api_client=api_client)
-        response = product_permission_profiles_api.add_user_product_permission_profiles_by_email(
+        (response, status, headers) = product_permission_profiles_api.add_user_product_permission_profiles_by_email_with_http_info(
             organization_id=org_id,
             account_id=account_id,
             user_product_permission_profiles_request=user_product_permission_profile_request
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Admin8Step4
 
         return response.to_dict()

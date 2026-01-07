@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_admin import ApiClient, ProductPermissionProfilesApi, DSGroupsApi, UsersApi, NewMultiProductUserAddRequest, ProductPermissionProfileRequest, DSGroupRequest
 from flask import session, json, request
 
@@ -37,7 +38,19 @@ class Eg002CreateActiveClmEsignUserController:
         )
         #ds-snippet-start:Admin2Step3
         product_permission_profiles_api = ProductPermissionProfilesApi(api_client=api_client)
-        profiles = product_permission_profiles_api.get_product_permission_profiles(organization_id=org_id, account_id=session["ds_account_id"])
+        (profiles, status, headers) = product_permission_profiles_api.get_product_permission_profiles_with_http_info(
+            organization_id=org_id,
+            account_id=session["ds_account_id"]
+        )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         profiles_list = profiles.to_dict()["product_permission_profiles"]
         #ds-snippet-end:Admin2Step3
         return profiles_list
@@ -59,8 +72,20 @@ class Eg002CreateActiveClmEsignUserController:
 
         #ds-snippet-start:Admin2Step4
         ds_groups_api = DSGroupsApi(api_client)
-        ds_groups = ds_groups_api.get_ds_groups(organization_id=org_id, account_id=session["ds_account_id"])
+        (ds_groups, status, headers) = ds_groups_api.get_ds_groups_with_http_info(
+            organization_id=org_id,
+            account_id=session["ds_account_id"]
+        )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Admin2Step4
+
         return ds_groups
 
     @staticmethod
@@ -108,7 +133,19 @@ class Eg002CreateActiveClmEsignUserController:
 
         #ds-snippet-start:Admin2Step6
         users_api = UsersApi(api_client)
-        response = users_api.add_or_update_user(organization_id=org_id, account_id=session["ds_account_id"], request=new_user)
+        (response, status, headers) = users_api.add_or_update_user_with_http_info(
+            organization_id=org_id,
+            account_id=session["ds_account_id"],
+            request=new_user
+        )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Admin2Step6
 
         return response.to_dict()

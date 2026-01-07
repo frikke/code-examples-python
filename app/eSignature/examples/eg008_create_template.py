@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime as dt, timezone
 from os import path
 
 from docusign_esign import Document, Signer, CarbonCopy, SignHere, Tabs, Recipients, \
@@ -36,7 +37,16 @@ class Eg008CreateTemplateController:
         templates_api = TemplatesApi(api_client)
         # 1. call Templates::list API method
         # Exceptions will be caught by the calling function
-        results = templates_api.list_templates(account_id=args["account_id"], search_text=template_name)
+        (results, status, headers) = templates_api.list_templates_with_http_info(account_id=args["account_id"], search_text=template_name)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         created_new_template = False
         
         if int(results.result_set_size) > 0:
@@ -50,8 +60,17 @@ class Eg008CreateTemplateController:
             # 2. create the template
             #ds-snippet-start:eSign8Step3
             template_req_object = cls.make_template_req(args["template_args"])
-            res = templates_api.create_template(account_id=args["account_id"], envelope_template=template_req_object)
+            (res, status, headers) = templates_api.create_template_with_http_info(account_id=args["account_id"], envelope_template=template_req_object)
+
+            remaining = headers.get("X-RateLimit-Remaining")
+            reset = headers.get("X-RateLimit-Reset")
+
+            if remaining is not None and reset is not None:
+                reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+                print(f"API calls remaining: {remaining}")
+                print(f"Next Reset: {reset_date}")
             #ds-snippet-end:eSign8Step3
+
             template_id = res.template_id
             results_template_name = res.name
             created_new_template = True

@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_esign import AccountsApi, PermissionProfile
 from docusign_esign.client.api_exception import ApiException
 from flask import request, session
@@ -39,19 +40,37 @@ class Eg026PermissionsChangeSingleSettingController:
             settings=args["settings"]
         )
         account_api = AccountsApi(api_client)
-        previous_settings = account_api.get_permission_profile(
+        (response, status, headers) = account_api.get_permission_profile_with_http_info(
             account_id=args["account_id"],
             permission_profile_id=args["permission_profile_id"]
-        ).settings.to_dict()
+        )
+        previous_settings = response.settings.to_dict()
+        
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+        
         #ds-snippet-end:eSign26Step3
         # Step 4. Call the eSignature REST API
         #ds-snippet-start:eSign26Step4
-        response = account_api.update_permission_profile(
+        (response, status, headers) = account_api.update_permission_profile(
             account_id=args["account_id"],
             permission_profile_id=args["permission_profile_id"],
             permission_profile=permission_profile
         )
         new_settings = response.settings.to_dict()
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign26Step4
         changed_settings = {}
 
@@ -73,7 +92,15 @@ class Eg026PermissionsChangeSingleSettingController:
 
         try:
             account_api = AccountsApi(api_client)
-            response = account_api.list_permissions(account_id=args["account_id"])
+            (response, status, headers) = account_api.list_permissions_with_http_info(account_id=args["account_id"])
+
+            remaining = headers.get("X-RateLimit-Remaining")
+            reset = headers.get("X-RateLimit-Reset")
+
+            if remaining is not None and reset is not None:
+                reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+                print(f"API calls remaining: {remaining}")
+                print(f"Next Reset: {reset_date}")
 
             return response.permission_profiles
 

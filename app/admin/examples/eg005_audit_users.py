@@ -3,7 +3,7 @@ from flask import session, json
 
 from ...ds_config import DS_CONFIG
 from app.admin.utils import get_organization_id
-import datetime
+from datetime import datetime as dt, timezone, timedelta
 
 class Eg005AuditUsersController:
     @staticmethod
@@ -37,15 +37,23 @@ class Eg005AuditUsersController:
         #ds-snippet-end:Admin5Step2
 
         #ds-snippet-start:Admin5Step3
-        today = datetime.datetime.now()
-        ten_days_ago = today - (datetime.timedelta(days = 10))
+        today = dt.now()
+        ten_days_ago = today - (timedelta(days = 10))
         last_modified_since = ten_days_ago.strftime('%Y-%m-%d')
 
         users_api = UsersApi(api_client=api_client)
-        users = users_api.get_users(
+        (users, status, headers) = users_api.get_users_with_http_info(
             organization_id=org_id,
             account_id=account_id, 
             last_modified_since=last_modified_since)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Admin5Step3
 
         #ds-snippet-start:Admin5Step4
@@ -59,7 +67,15 @@ class Eg005AuditUsersController:
         #ds-snippet-start:Admin5Step5
         profile_list = []
         for email in emails:
-            profile = users_api.get_user_profiles(organization_id=org_id, email=email)
+            (profile, status, headers) = users_api.get_user_profiles_with_http_info(organization_id=org_id, email=email)
+
+            remaining = headers.get("X-RateLimit-Remaining")
+            reset = headers.get("X-RateLimit-Reset")
+
+            if remaining is not None and reset is not None:
+                reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+                print(f"API calls remaining: {remaining}")
+                print(f"Next Reset: {reset_date}")
             profile_list.append(profile.to_dict())
 
         results = {"Modified users": profile_list}

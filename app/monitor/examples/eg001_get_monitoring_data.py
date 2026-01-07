@@ -1,6 +1,6 @@
 from docusign_monitor import DataSetApi
 from flask import session
-from datetime import datetime, timedelta, timezone
+from datetime import datetime as dt, timedelta, timezone
 
 from app.monitor.utils import create_monitor_api_client
 
@@ -26,7 +26,7 @@ class Eg001GetMonitoringDataController:
         )
         #ds-snippet-end:Monitor1Step2 
         #ds-snippet-start:Monitor1Step3
-        cursor_date = datetime.now(timezone.utc).replace(year=datetime.now(timezone.utc).year - 1)
+        cursor_date = dt.now(timezone.utc).replace(year=dt.now(timezone.utc).year - 1)
         dataset_api = DataSetApi(api_client=api_client)
 
         cursor_value = cursor_date.strftime('%Y-%m-%dT00:00:00Z')
@@ -35,12 +35,21 @@ class Eg001GetMonitoringDataController:
         complete = False
 
         while not complete:
-            cursored_results = dataset_api.get_stream(
+            (cursored_results, status, headers) = dataset_api.get_stream_with_http_info(
                 data_set_name="monitor",
                 version="2.0",
                 limit=limit,
                 cursor=cursor_value
             )
+
+            remaining = headers.get("X-RateLimit-Remaining")
+            reset = headers.get("X-RateLimit-Reset")
+
+            if remaining is not None and reset is not None:
+                reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+                print(f"API calls remaining: {remaining}")
+                print(f"Next Reset: {reset_date}")
+
             end_cursor = cursored_results.end_cursor
 
             if end_cursor == cursor_value:

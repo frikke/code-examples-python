@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_admin import ApiClient, AccountsApi, IndividualMembershipDataRedactionRequest
 from flask import session, request
 
@@ -40,7 +41,15 @@ class Eg011DeleteUserDataFromAccountController:
         #ds-snippet-end:Admin11Step3
 
         #ds-snippet-start:Admin11Step4
-        results = accounts_api.redact_individual_membership_data(account_id, membership_redaction_request)
+        (results, status, headers) = accounts_api.redact_individual_membership_data_with_http_info(account_id, membership_redaction_request)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Admin11Step4
 
         return results

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime as dt, timedelta, timezone
 
 from docusign_esign import EnvelopesApi
 from flask import session
@@ -36,8 +36,16 @@ class Eg003ListEnvelopesController:
         # Here we set the from_date to filter envelopes for the last month
         # Use ISO 8601 date format
         # 1. Call the envelope status change method to list the envelopes
-        from_date = (datetime.utcnow() - timedelta(days=30)).strftime('%Y-%m-%d')
-        results = envelope_api.list_status_changes(account_id=args["account_id"], from_date=from_date)
+        from_date = (dt.utcnow() - timedelta(days=30)).strftime('%Y-%m-%d')
+        (data, status, headers) = envelope_api.list_status_changes_with_http_info(account_id=args["account_id"], from_date=from_date)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign3Step2
 
-        return results
+        return data
