@@ -26,6 +26,8 @@ web_form_template_file = "World_Wide_Corp_Web_Form.pdf"
 
 web_form_config_file = "web-form-config.json"
 
+order_form_html_file = "order_form.html"
+
 # Base uri for callback function
 base_uri_suffix = "/restapi"
 

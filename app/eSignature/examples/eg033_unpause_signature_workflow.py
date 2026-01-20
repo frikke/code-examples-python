@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_esign import EnvelopesApi, EnvelopeDefinition
 from docusign_esign.models import Workflow
 from flask import session
@@ -38,11 +39,20 @@ class Eg033UnpauseSignatureWorkflowController:
         # Exceptions will be caught by the calling function
         #ds-snippet-start:eSign33Step4
         envelopes_api = EnvelopesApi(api_client)
-        results = envelopes_api.update(
+        (results, status, headers) = envelopes_api.update_with_http_info(
             account_id=args["account_id"],
             envelope_id=args["envelope_id"],
             envelope=env,
             resend_envelope=True
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign33Step4
+
         return {"envelope_id": results.envelope_id}

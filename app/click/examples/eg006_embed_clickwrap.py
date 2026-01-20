@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_click import AccountsApi, UserAgreementRequest
 from flask import session, request
 import ast
@@ -36,10 +37,18 @@ class Eg006EmbedClickwrapController:
         
         # Step 2. Get a list of active clickwraps
         accounts_api = AccountsApi(api_client)
-        response = accounts_api.get_clickwraps(
+        (response, status, headers) = accounts_api.get_clickwraps_with_http_info(
             account_id=args["account_id"],
             status="active"
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         
         return response
 
@@ -74,11 +83,19 @@ class Eg006EmbedClickwrapController:
         accounts_api = AccountsApi(api_client)
         clickwrap = ast.literal_eval(args["clickwrap"])
         print(type(clickwrap))
-        response = accounts_api.create_has_agreed(
+        (response, status, headers) = accounts_api.create_has_agreed_with_http_info(
             account_id=args["account_id"],
             clickwrap_id=clickwrap["clickwrap_id"],
             user_agreement_request=user_agreement_request,
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Click6Step4
 
         return response

@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_rooms import (
     ExternalFormFillSessionsApi,
     ExternalFormFillSessionForCreate,
@@ -32,7 +33,16 @@ class Eg006CreateExternalFormFillSessionController:
 
         # Get rooms
         rooms_api = RoomsApi(api_client)
-        rooms = rooms_api.get_rooms(account_id=args["account_id"])
+        (rooms, status, headers) = rooms_api.get_rooms_with_http_info(account_id=args["account_id"])
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         return rooms.rooms
 
     @staticmethod
@@ -46,10 +56,19 @@ class Eg006CreateExternalFormFillSessionController:
 
         # Get room by id
         rooms_api = RoomsApi(api_client)
-        room = rooms_api.get_room(
+        (room, status, headers) = rooms_api.get_room_with_http_info(
             room_id=args["room_id"],
             account_id=args["account_id"]
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         return room
 
     @staticmethod
@@ -64,10 +83,18 @@ class Eg006CreateExternalFormFillSessionController:
 
         # Get room documents
         rooms_api = RoomsApi(api_client)
-        room_documents = rooms_api.get_documents(
+        (room_documents, status, headers) = rooms_api.get_documents_with_http_info(
             room_id=args["room_id"],
             account_id=args["account_id"]
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
 
         # Get room forms
         room_forms = [
@@ -98,9 +125,18 @@ class Eg006CreateExternalFormFillSessionController:
         # Create an external form fill session
         #ds-snippet-start:Rooms6Step4
         form_fill_session_api = ExternalFormFillSessionsApi(api_client)
-        results = form_fill_session_api.create_external_form_fill_session(
+        (results, status, headers) = form_fill_session_api.create_external_form_fill_session_with_http_info(
             body=request_body,
             account_id=args["account_id"]
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Rooms6Step4
+
         return results

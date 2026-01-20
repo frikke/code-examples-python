@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime as dt, timezone
 from os import path
 
 from docusign_esign import EnvelopesApi, Document, Signer, EnvelopeDefinition, Recipients, \
@@ -69,10 +70,19 @@ class Eg031BulkSendController:
         #ds-snippet-start:eSign31Step3
         bulk_envelopes_api = BulkEnvelopesApi(api_client)
         bulk_sending_list = cls.create_bulk_sending_list(args["signers"])
-        bulk_list = bulk_envelopes_api.create_bulk_send_list(
+        (bulk_list, status, headers) = bulk_envelopes_api.create_bulk_send_list_with_http_info(
             account_id=args["account_id"],
             bulk_sending_list=bulk_sending_list
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         bulk_list_id = bulk_list.list_id
         #ds-snippet-end:eSign31Step3
 
@@ -80,7 +90,16 @@ class Eg031BulkSendController:
         #ds-snippet-start:eSign31Step4
         envelope_api = EnvelopesApi(api_client)
         envelope_definition = cls.make_draft_envelope(args["doc_pdf"])
-        envelope = envelope_api.create_envelope(account_id=args["account_id"], envelope_definition=envelope_definition)
+        (envelope, status, headers) = envelope_api.create_envelope_with_http_info(account_id=args["account_id"], envelope_definition=envelope_definition)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         envelope_id = envelope.envelope_id
         #ds-snippet-end:eSign31Step4
 
@@ -88,28 +107,55 @@ class Eg031BulkSendController:
         #ds-snippet-start:eSign31Step5
         text_custom_fields = TextCustomField(name="mailingListId", required="false", show="false", value=bulk_list_id)
         custom_fields = CustomFields(list_custom_fields=[], text_custom_fields=[text_custom_fields])
-        envelope_api.create_custom_fields(
+        (response, status, headers) = envelope_api.create_custom_fields_with_http_info(
             account_id=args["account_id"],
             envelope_id=envelope_id,
             custom_fields=custom_fields
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign31Step5
 
         # Initiate bulk send
         #ds-snippet-start:eSign31Step6
         bulk_send_request = BulkSendRequest(envelope_or_template_id=envelope_id)
-        batch = bulk_envelopes_api.create_bulk_send_request(
+        (batch, status, headers) = bulk_envelopes_api.create_bulk_send_request_with_http_info(
             account_id=args["account_id"],
             bulk_send_list_id=bulk_list_id,
             bulk_send_request=bulk_send_request
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         batch_id = batch.batch_id
         #ds-snippet-end:eSign31Step6
 
         # Confirm successful batch send
         #ds-snippet-start:eSign31Step7
-        response = bulk_envelopes_api.get_bulk_send_batch_status(account_id=args["account_id"],
-                                                                 bulk_send_batch_id=batch_id)
+        (response, status, headers) = bulk_envelopes_api.get_bulk_send_batch_status_with_http_info(
+            account_id=args["account_id"],
+            bulk_send_batch_id=batch_id
+        )
+        
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign31Step7
         print(response)
 

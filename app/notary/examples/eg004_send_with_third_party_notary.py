@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime as dt, timezone
 from os import path
 
 from docusign_esign import EnvelopesApi, EnvelopeDefinition, Document, Signer, Notary, SignHere, Tabs, Recipients, \
@@ -26,7 +27,16 @@ class Eg004SendWithThirdPartyNotary:
         #ds-snippet-end:Notary4Step2
 
         #ds-snippet-start:Notary4Step4
-        results = envelopes_api.create_envelope(account_id=args["account_id"], envelope_definition=envelope_definition)
+        (results, status, headers) = envelopes_api.create_envelope_with_http_info(account_id=args["account_id"], envelope_definition=envelope_definition)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         #ds-snippet-end:Notary4Step4
 
         envelope_id = results.envelope_id

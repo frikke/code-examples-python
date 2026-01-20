@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime as dt, timezone
 from os import path
 
 from docusign_esign import EnvelopesApi, EnvelopeDefinition, Document, Signer, CarbonCopy, SignHere, Tabs, Recipients
@@ -24,9 +25,17 @@ class Eg002SigningViaEmailController:
         # Call Envelopes::create API method
         # Exceptions will be caught by the calling function
         envelopes_api = EnvelopesApi(api_client)
-        results = envelopes_api.create_envelope(account_id=args["account_id"], envelope_definition=envelope_definition)
+        (data, status, headers) = envelopes_api.create_envelope_with_http_info(account_id=args["account_id"], envelope_definition=envelope_definition)
 
-        envelope_id = results.envelope_id
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
+        envelope_id = data.envelope_id
 
         return {"envelope_id": envelope_id}
         #ds-snippet-end:eSign2Step3

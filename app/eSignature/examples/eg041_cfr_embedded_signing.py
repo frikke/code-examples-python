@@ -1,10 +1,13 @@
 import base64
+from datetime import datetime as dt, timezone
 from os import path
 
 from docusign_esign import AccountsApi, EnvelopesApi, RecipientViewRequest, Document, Signer, EnvelopeDefinition, SignHere, Tabs, \
     Recipients
 from docusign_esign.client.api_exception import ApiException
 from flask import session, url_for, request
+
+from app.error_handlers import process_error
 
 from ...consts import authentication_method, demo_docs_path, pattern, signer_client_id
 from ...docusign import create_api_client
@@ -57,7 +60,15 @@ class Eg041CFREmbeddedSigningController:
         api_client = create_api_client(base_path=args["base_path"], access_token=args["access_token"])
 
         envelope_api = EnvelopesApi(api_client)
-        results = envelope_api.create_envelope(account_id=args["account_id"], envelope_definition=envelope_definition)
+        (results, status, headers) = envelope_api.create_envelope_with_http_info(account_id=args["account_id"], envelope_definition=envelope_definition)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
 
         envelope_id = results.envelope_id
         #ds-snippet-end:eSign41Step4
@@ -76,11 +87,19 @@ class Eg041CFREmbeddedSigningController:
         # Obtain the recipient_view_url for the embedded signing
         # Exceptions will be caught by the calling function
         #ds-snippet-start:eSign41Step6
-        results = envelope_api.create_recipient_view(
+        (results, status, headers) = envelope_api.create_recipient_view_with_http_info(
             account_id=args["account_id"],
             envelope_id=envelope_id,
             recipient_view_request=recipient_view_request
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign41Step6
 
         return {"envelope_id": envelope_id, "redirect_url": results.url}
@@ -156,7 +175,15 @@ class Eg041CFREmbeddedSigningController:
             api_client = create_api_client(base_path=args["base_path"], access_token=args["access_token"])
 
             workflow_details = AccountsApi(api_client)
-            workflow_response = workflow_details.get_account_identity_verification(account_id=args["account_id"])
+            (workflow_response, status, headers) = workflow_details.get_account_identity_verification_with_http_info(account_id=args["account_id"])
+
+            remaining = headers.get("X-RateLimit-Remaining")
+            reset = headers.get("X-RateLimit-Reset")
+
+            if remaining is not None and reset is not None:
+                reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+                print(f"API calls remaining: {remaining}")
+                print(f"Next Reset: {reset_date}")
 
             # Check that idv authentication is enabled
             # Find the workflow ID corresponding to the name "Phone Authentication"

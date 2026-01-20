@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_esign import FoldersApi, FoldersRequest
 
 from ...docusign import create_api_client
@@ -18,8 +19,17 @@ class Eg045DeleteRestoreEnvelopeController:
         #ds-snippet-end:eSign45Step3
 
         #ds-snippet-start:eSign45Step4
-        results = folders_api.move_envelopes(account_id=args["account_id"], folder_id=args["delete_folder_id"], folders_request=folders_request)
+        (results, status, headers) = folders_api.move_envelopes_with_http_info(account_id=args["account_id"], folder_id=args["delete_folder_id"], folders_request=folders_request)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign45Step4
+
         return results
 
     @staticmethod
@@ -33,8 +43,17 @@ class Eg045DeleteRestoreEnvelopeController:
             from_folder_id=args["from_folder_id"]
         )
 
-        results = folders_api.move_envelopes(account_id=args["account_id"], folder_id=args["folder_id"], folders_request=folders_request)
+        (results, status, headers) = folders_api.move_envelopes_with_http_info(account_id=args["account_id"], folder_id=args["folder_id"], folders_request=folders_request)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign45Step6
+
         return results
 
     @staticmethod
@@ -43,6 +62,15 @@ class Eg045DeleteRestoreEnvelopeController:
         folders_api = FoldersApi(api_client)
 
         #ds-snippet-start:eSign45Step5
-        results = folders_api.list(account_id=args["account_id"])
+        (results, status, headers) = folders_api.list_with_http_info(account_id=args["account_id"])
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign45Step5
+
         return results

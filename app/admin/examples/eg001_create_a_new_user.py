@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_admin import UsersApi, NewUserRequest, NewUserRequestAccountProperties, PermissionProfileRequest, GroupRequest
 from docusign_esign import AccountsApi, ApiClient, GroupsApi
 from flask import session
@@ -43,7 +44,16 @@ class Eg001CreateNewUserController:
         
         #ds-snippet-start:Admin1Step3
         accounts_api = AccountsApi(api_client=api_client)
-        profiles = accounts_api.list_permissions(account_id=account_id)
+        (profiles, status, headers) = accounts_api.list_permissions_with_http_info(account_id=account_id)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         profiles_list = profiles.to_dict()["permission_profiles"]
         #ds-snippet-end:Admin1Step3
         return profiles_list
@@ -64,7 +74,16 @@ class Eg001CreateNewUserController:
         
         #ds-snippet-start:Admin1Step4
         groups_api = GroupsApi(api_client)
-        groups = groups_api.list_groups(account_id=account_id)
+        (groups, status, headers) = groups_api.list_groups_with_http_info(account_id=account_id)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         groups_dict = groups.to_dict()
         groups_list = groups_dict["groups"]
         #ds-snippet-end:Admin1Step4       
@@ -127,9 +146,18 @@ class Eg001CreateNewUserController:
 
         # Creates a user using a method from the user API
         #ds-snippet-start:Admin1Step6
-        response = user_api.create_user(
+        (response, status, headers) = user_api.create_user_with_http_info(
             args["organization_id"],
             request_body
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Admin1Step6
+
         return response

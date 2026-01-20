@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime as dt, timezone
 from os import path
 from docusign_esign import AccountsApi, EnvelopesApi, EnvelopeDefinition, Document, Signer, SignHere, Tabs, Recipients
 from docusign_esign.client.api_exception import ApiException
@@ -50,8 +51,17 @@ class Eg029BrandsApplyToEnvelopeController:
         envelope_definition = cls.make_envelope(args["envelope_args"])
 
         # Call the eSignature REST API
-        response = envelope_api.create_envelope(account_id=args["account_id"], envelope_definition=envelope_definition)
+        (response, status, headers) = envelope_api.create_envelope_with_http_info(account_id=args["account_id"], envelope_definition=envelope_definition)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign29Step4
+
         return response
 
     #ds-snippet-start:eSign29Step3
@@ -107,7 +117,16 @@ class Eg029BrandsApplyToEnvelopeController:
         api_client = create_api_client(base_path=args["base_path"], access_token=args["access_token"])
         try:
             account_api = AccountsApi(api_client)
-            response = account_api.list_brands(account_id=args["account_id"])
+            (response, status, headers) = account_api.list_brands_with_http_info(account_id=args["account_id"])
+
+            remaining = headers.get("X-RateLimit-Remaining")
+            reset = headers.get("X-RateLimit-Reset")
+
+            if remaining is not None and reset is not None:
+                reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+                print(f"API calls remaining: {remaining}")
+                print(f"Next Reset: {reset_date}")
+
             return response.brands
         except ApiException as err:
             return process_error(err)

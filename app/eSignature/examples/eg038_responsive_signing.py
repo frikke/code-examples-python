@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from os import path
 
 from docusign_esign import (
@@ -14,7 +15,7 @@ from docusign_esign import (
 )
 from flask import session, url_for, request
 
-from ...consts import authentication_method, demo_docs_path, pattern, signer_client_id
+from ...consts import authentication_method, demo_docs_path, order_form_html_file, pattern, signer_client_id
 from ...docusign import create_api_client
 
 
@@ -35,8 +36,7 @@ class Eg038ResponsiveSigning:
             "cc_email": cc_email,
             "cc_name": cc_name,
             "signer_client_id": signer_client_id,
-            "ds_return_url": url_for("ds.ds_return", _external=True),
-            "doc_file": path.join(demo_docs_path, "order_form.html")
+            "ds_return_url": url_for("ds.ds_return", _external=True)
         }
         args = {
             "account_id": session["ds_account_id"],
@@ -64,7 +64,15 @@ class Eg038ResponsiveSigning:
         api_client = create_api_client(base_path=args["base_path"], access_token=args["access_token"])
 
         envelope_api = EnvelopesApi(api_client)
-        results = envelope_api.create_envelope(account_id=args["account_id"], envelope_definition=envelope_definition)
+        (results, status, headers) = envelope_api.create_envelope_with_http_info(account_id=args["account_id"], envelope_definition=envelope_definition)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
 
         envelope_id = results.envelope_id
 
@@ -79,11 +87,19 @@ class Eg038ResponsiveSigning:
         )
         # Obtain the recipient_view_url for the embedded signing
         # Exceptions will be caught by the calling function
-        results = envelope_api.create_recipient_view(
+        (results, status, headers) = envelope_api.create_recipient_view_with_http_info(
             account_id=args["account_id"],
             envelope_id=envelope_id,
             recipient_view_request=recipient_view_request
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
 
         return {"envelope_id": envelope_id, "redirect_url": results.url}
     #ds-snippet-end:eSign38Step3
@@ -196,7 +212,7 @@ class Eg038ResponsiveSigning:
 
     @classmethod
     def get_html_content(cls, args):
-        with open(args["doc_file"], "r") as file:
+        with open(path.join(demo_docs_path, order_form_html_file), "r") as file:
             doc_html = file.read()
 
         return doc_html.replace("{signer_name}", args["signer_name"]) \

@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_rooms import FieldDataForCreate, RolesApi, RoomsApi, RoomForCreate, RoomTemplatesApi
 from flask import session, request
 
@@ -27,8 +28,17 @@ class Eg002CreateRoomWithTemplateController:
         # Step 2. Get room templates
         #ds-snippet-start:Rooms2Step3
         room_templates_api = RoomTemplatesApi(api_client)
-        templates = room_templates_api.get_room_templates(account_id=args["account_id"])
+        (templates, status, headers) = room_templates_api.get_room_templates_with_http_info(account_id=args["account_id"])
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Rooms2Step3
+
         return templates.room_templates
 
     @staticmethod
@@ -47,7 +57,16 @@ class Eg002CreateRoomWithTemplateController:
         # Step 2. Get Default Admin role id
         #ds-snippet-start:Rooms2Step4
         roles_api = RolesApi(api_client)
-        roles = roles_api.get_roles(account_id=args["account_id"])
+        (roles, status, headers) = roles_api.get_roles_with_http_info(account_id=args["account_id"])
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         role_id = [role.role_id for role in roles.roles if role.is_default_for_admin][0]
 
         # Step 3. Create RoomForCreate object
@@ -69,9 +88,18 @@ class Eg002CreateRoomWithTemplateController:
         # Step 4. Create the room using a POST API call.
         #ds-snippet-start:Rooms2Step5
         rooms_api = RoomsApi(api_client)
-        response = rooms_api.create_room(
+        (response, status, headers) = rooms_api.create_room_with_http_info(
             body=room,
             account_id=args["account_id"],
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Rooms2Step5
+
         return response

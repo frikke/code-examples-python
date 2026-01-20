@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_click import AccountsApi, ClickwrapRequest
 from flask import session
 
@@ -29,9 +30,17 @@ class Eg004ListClickwrapsController:
         # Get a list of all elastic templates
         #ds-snippet-start:Click4Step3
         accounts_api = AccountsApi(api_client)
-        response = accounts_api.get_clickwraps(
+        (response, status, headers) = accounts_api.get_clickwraps_with_http_info(
             account_id=args["account_id"]
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end
 
         return response

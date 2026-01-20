@@ -2,7 +2,7 @@ import json
 
 from docusign_esign import EnvelopesApi, UsersApi, AccountsApi, NewUsersDefinition, UserInformation, \
     UserAuthorizationCreateRequest, AuthorizationUser, ApiException
-from datetime import datetime, timedelta
+from datetime import datetime as dt, timedelta, timezone
 
 from ...docusign import create_api_client
 
@@ -19,7 +19,16 @@ class Eg043SharedAccessController:
 
         # check if agent already exists
         try:
-            users = users_api.list(args["account_id"], email=args["email"], status="Active")
+            (users, status, headers) = users_api.list_with_http_info(args["account_id"], email=args["email"], status="Active")
+
+            remaining = headers.get("X-RateLimit-Remaining")
+            reset = headers.get("X-RateLimit-Reset")
+
+            if remaining is not None and reset is not None:
+                reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+                print(f"API calls remaining: {remaining}")
+                print(f"Next Reset: {reset_date}")
+
             if int(users.result_set_size) > 0:
                 return users.users[0]
 
@@ -34,7 +43,16 @@ class Eg043SharedAccessController:
 
         # create new agent
         #ds-snippet-start:eSign43Step3
-        new_users = users_api.create(args["account_id"], new_users_definition=cls.new_users_definition(args))
+        (new_users, status, headers) = users_api.create_with_http_info(args["account_id"], new_users_definition=cls.new_users_definition(args))
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         return new_users.new_users[0]
         #ds-snippet-end:eSign43Step3
 
@@ -45,21 +63,40 @@ class Eg043SharedAccessController:
         accounts_api = AccountsApi(api_client)
 
         # check if authorization with manage permission already exists
-        authorizations = accounts_api.get_agent_user_authorizations(
+        (authorizations, status, headers) = accounts_api.get_agent_user_authorizations_with_http_info(
             args["account_id"],
             args["agent_user_id"],
             permissions="manage"
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         if int(authorizations.result_set_size) > 0:
             return
 
         # create authorization
-        return accounts_api.create_user_authorization(
+        (authorization, status, headers) = accounts_api.create_user_authorization_with_http_info(
             args["account_id"],
             args["user_id"],
             user_authorization_create_request=cls.user_authorization_request(args)
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign43Step4
+
+        return authorization
 
     #ds-snippet-start:eSign43Step3
     @classmethod
@@ -89,6 +126,16 @@ class Eg043SharedAccessController:
         api_client.set_default_header("X-DocuSign-Act-On-Behalf", args["user_id"])
         envelopes_api = EnvelopesApi(api_client)
 
-        from_date = (datetime.utcnow() - timedelta(days=10)).isoformat()
-        return envelopes_api.list_status_changes(account_id=args["account_id"], from_date=from_date)
+        from_date = (dt.utcnow() - timedelta(days=10)).isoformat()
+        (envelopes, status, headers) = envelopes_api.list_status_changes_with_http_info(account_id=args["account_id"], from_date=from_date)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
+        return envelopes
     #ds-snippet-end:eSign43Step5

@@ -1,5 +1,6 @@
 """007: Get an envelope"s document"""
 
+from io import BytesIO
 from os import path
 
 from docusign_esign.client.api_exception import ApiException
@@ -39,10 +40,10 @@ def get_envelope_doc():
 
         # 3. Download envelope document from the temp file path
         return send_file(
-            results["data"],
+            BytesIO(results["data"]),
             mimetype=results["mimetype"],
             as_attachment=True,
-            attachment_filename=results["doc_name"]
+            download_name=results["doc_name"]
         )
     else:
         return render_template(

@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_esign import EnvelopesApi, ConsoleViewRequest
 from flask import session, url_for, request
 
@@ -44,7 +45,16 @@ class Eg012EmbeddedConsoleController:
         api_client = create_api_client(base_path=args["base_path"], access_token=args["access_token"])
 
         envelope_api = EnvelopesApi(api_client)
-        results = envelope_api.create_console_view(account_id=args["account_id"], console_view_request=view_request)
+        (results, status, headers) = envelope_api.create_console_view_with_http_info(account_id=args["account_id"], console_view_request=view_request)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         url = results.url
         #ds-snippet-end:eSign12Step2
         return {"redirect_url": url}

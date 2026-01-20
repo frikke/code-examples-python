@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime as dt, timezone
 from os import path
 
 from docusign_click import AccountsApi, ClickwrapRequest, DisplaySettings, \
@@ -75,10 +76,18 @@ class Eg001CreateClickwrapController:
         # Create a clickwrap using SDK
         #ds-snippet-start:Click1Step4
         accounts_api = AccountsApi(api_client)
-        response = accounts_api.create_clickwrap(
+        (response, status, headers) = accounts_api.create_clickwrap_with_http_info(
             clickwrap_request=clickwrap_request,
             account_id=args["account_id"]
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Click1Step4
 
         return response

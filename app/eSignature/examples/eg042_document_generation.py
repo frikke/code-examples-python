@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime as dt, timezone
 from flask import session, request
 from os import path
 from docusign_esign import EnvelopesApi, TemplatesApi, EnvelopeDefinition, Document, Signer, SignHere, \
@@ -53,55 +54,114 @@ class Eg042DocumentGenerationController:
 
         #ds-snippet-start:eSign42Step2
         template_data = cls.make_template()
-        template = templates_api.create_template(account_id, envelope_template=template_data)
+        (template, status, headers) = templates_api.create_template_with_http_info(account_id, envelope_template=template_data)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         template_id = template.template_id
         #ds-snippet-end:eSign42Step2
 
         # Update template document
         #ds-snippet-start:eSign42Step3
         document_id = '1'
-        templates_api.update_document(
+        (response, status, headers) = templates_api.update_document_with_http_info(
             account_id, document_id, template_id,
             envelope_definition=cls.template_document(envelope_args)
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign42Step3
 
         # Update recipient tabs
         #ds-snippet-start:eSign42Step4
         recipient_id = '1'
-        templates_api.create_tabs(
+        (response, status, headers) = templates_api.create_tabs_with_http_info(
             account_id, recipient_id, template_id,
             template_tabs=cls.recipient_tabs()
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign42Step4
 
         # Create draft envelope
         #ds-snippet-start:eSign42Step5
         envelope_definition = cls.make_envelope(template_id, envelope_args)
-        envelope = envelopes_api.create_envelope(account_id, envelope_definition=envelope_definition)
+        (envelope, status, headers) = envelopes_api.create_envelope_with_http_info(account_id, envelope_definition=envelope_definition)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         envelope_id = envelope.envelope_id
         #ds-snippet-end:eSign42Step5
 
         # Get the document id
         #ds-snippet-start:eSign42Step6
-        doc_gen_form_fields_response = envelopes_api.get_envelope_doc_gen_form_fields(account_id, envelope_id)
+        (doc_gen_form_fields_response, status, headers) = envelopes_api.get_envelope_doc_gen_form_fields_with_http_info(account_id, envelope_id)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         document_id_guid = doc_gen_form_fields_response.doc_gen_form_fields[0].document_id
         #ds-snippet-end:eSign42Step6
 
         # Merge the data fields
         #ds-snippet-start:eSign42Step7
         form_fields = cls.form_fields(envelope_args, document_id_guid)
-        envelopes_api.update_envelope_doc_gen_form_fields(
+        (response, status, headers) = envelopes_api.update_envelope_doc_gen_form_fields_with_http_info(
             account_id,
             envelope_id,
             doc_gen_form_field_request=form_fields
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign42Step7
 
         # Send the envelope
         #ds-snippet-start:eSign42Step8
         send_envelope_req = Envelope(status="sent")
-        envelope = envelopes_api.update(account_id, envelope_id, envelope=send_envelope_req)
+        (envelope, status, headers) = envelopes_api.update_with_http_info(account_id, envelope_id, envelope=send_envelope_req)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign42Step8
         return envelope
 

@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_esign import EnvelopesApi, EnvelopeDefinition, TemplateRole, AccountsApi, TemplatesApi
 from docusign_esign.client.api_exception import ApiException
 from flask import session, request
@@ -61,8 +62,17 @@ class Eg030BrandsApplyToTemplateController:
 
         # Call the eSignature REST API
         #ds-snippet-start:eSign30Step4
-        response = envelope_api.create_envelope(account_id=args["account_id"], envelope_definition=envelope_definition)
+        (response, status, headers) = envelope_api.create_envelope_with_http_info(account_id=args["account_id"], envelope_definition=envelope_definition)
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:eSign30Step4
+
         return response
 
     @classmethod
@@ -108,7 +118,15 @@ class Eg030BrandsApplyToTemplateController:
         try:
             """Retrieve all brands using the AccountBrands::List"""
             account_api = AccountsApi(api_client)
-            brands = account_api.list_brands(account_id=args["account_id"]).brands
+            (brands, status, headers) = account_api.list_brands_with_http_info(account_id=args["account_id"]).brands
+
+            remaining = headers.get("X-RateLimit-Remaining")
+            reset = headers.get("X-RateLimit-Reset")
+
+            if remaining is not None and reset is not None:
+                reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+                print(f"API calls remaining: {remaining}")
+                print(f"Next Reset: {reset_date}")
 
             return brands
 

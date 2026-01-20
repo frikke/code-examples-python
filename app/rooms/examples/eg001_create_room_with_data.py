@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_rooms import RoomsApi, RolesApi, RoomForCreate, FieldDataForCreate
 from flask import session, request
 
@@ -31,7 +32,16 @@ class Eg001CreateRoomWithDateController:
 
         # Step 2. Get Default Admin role id
         roles_api = RolesApi(api_client)
-        roles = roles_api.get_roles(account_id=args["account_id"])
+        (roles, status, headers) = roles_api.get_roles_with_http_info(account_id=args["account_id"])
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         role_id = [role.role_id for role in roles.roles if role.is_default_for_admin][0]
 
         # Step 3. Create RoomForCreate object
@@ -57,9 +67,18 @@ class Eg001CreateRoomWithDateController:
         # Step 4. Post the room using SDK
         #ds-snippet-start:Rooms1Step4
         rooms_api = RoomsApi(api_client)
-        response = rooms_api.create_room(
+        (response, status, headers) = rooms_api.create_room_with_http_info(
             body=room,
             account_id=args["account_id"]
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Rooms2Step4
+
         return response

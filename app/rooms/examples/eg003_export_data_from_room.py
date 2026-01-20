@@ -1,3 +1,4 @@
+from datetime import datetime as dt, timezone
 from docusign_rooms import RoomsApi
 from flask import session, request
 
@@ -27,7 +28,16 @@ class Eg003ExportDataFromRoomController:
 
         # Step 2. Get room templates
         rooms_api = RoomsApi(api_client)
-        rooms = rooms_api.get_rooms(account_id=args["account_id"])
+        (rooms, status, headers) = rooms_api.get_rooms_with_http_info(account_id=args["account_id"])
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
+
         return rooms.rooms
 
     @staticmethod
@@ -42,9 +52,18 @@ class Eg003ExportDataFromRoomController:
         # Step 2. Get room field data using SDK
         #ds-snippet-start:Rooms3Step3
         rooms_api = RoomsApi(api_client)
-        response = rooms_api.get_room_field_data(
+        (response, status, headers) = rooms_api.get_room_field_data_with_http_info(
             room_id=args['room_id'],
             account_id=args["account_id"]
         )
+
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None and reset is not None:
+            reset_date = dt.fromtimestamp(int(reset), tz=timezone.utc)
+            print(f"API calls remaining: {remaining}")
+            print(f"Next Reset: {reset_date}")
         #ds-snippet-end:Rooms3Step3
+
         return response
