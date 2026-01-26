@@ -1,0 +1,107 @@
+<!-- extend base layout --> {% extends "base.html" %}  {% block content %}
+
+{% include 'example_info.html' %}
+
+{%  set recipient_form_index = 0 %}
+{%  set delivery_method_index = 0 %}
+{%  set sms_delivery_method_index = 1 %}
+{%  set whatsapp_delivery_method_index = 2 %}
+{%  set signer_name_index = 3 %}
+{%  set signer_email_index = 4 %}
+{%  set signer_country_code_index = 5 %}
+{%  set signer_phone_number_index = 6 %}
+{%  set cc_name_index = 7 %}
+{%  set cc_email_index = 8 %}
+{%  set cc_country_code_index = 9 %}
+{%  set cc_phone_number_index = 10 %}
+
+<form class="eg" action="" method="post" data-busy="form">
+    {% if 'FormName' in example['Forms'][recipient_form_index] %}
+        <p>{{ example['Forms'][recipient_form_index]['FormName'] | safe }}</p>
+    {% endif %}
+
+    <div class="form-group">
+      <label for="delivery_method">{{ example['Forms'][recipient_form_index]['Inputs'][delivery_method_index]['InputName'] }}</label><br>
+
+      <label>{{ example['Forms'][recipient_form_index]['Inputs'][sms_delivery_method_index]['InputName'] }}</label>
+      <input type="radio" name="delivery_method" value="SMS" checked />
+
+      <label>{{ example['Forms'][recipient_form_index]['Inputs'][whatsapp_delivery_method_index]['InputName'] }}</label>
+      <input type="radio" name="delivery_method" value="WhatsApp" />
+    </div>
+
+    <div class="form-group">
+      <label for="signer_name">{{ example['Forms'][recipient_form_index]['Inputs'][signer_name_index]['InputName'] }}</label>
+      <input type="text" class="form-control" id="signer_name"
+        placeholder="{{ example['Forms'][recipient_form_index]['Inputs'][signer_name_index]['InputPlaceholder'] }}"
+        name="signer_name" value="{{ signer_name }}" required>
+    </div>
+    <div class="form-group">
+      <label for="signer_email">{{ example['Forms'][recipient_form_index]['Inputs'][signer_email_index]['InputName'] }}</label>
+      <input type="email" class="form-control" id="signer_email"
+        placeholder="{{ example['Forms'][recipient_form_index]['Inputs'][signer_email_index]['InputPlaceholder'] }}"
+        name="signer_email" value="{{ signer_email }}" required>
+      <small id="emailHelp" class="form-text text-muted">
+        {{ session['manifest']['SupportingTexts']['HelpingTexts']['EmailWontBeShared'] | safe}}
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label for="signer_country_code">{{ example['Forms'][recipient_form_index]['Inputs'][signer_country_code_index]['InputName'] }}</label>
+      <input type="tel" class="form-control" id="signer_country_code" name="signer_country_code" aria-describedby="accessHelp"
+        placeholder="{{ example['Forms'][recipient_form_index]['Inputs'][signer_country_code_index]['InputPlaceholder'] }}"
+        required />
+      <small id="accessHelp" class="form-text text-muted">
+        {{ session['manifest']['SupportingTexts']['HelpingTexts']['CountryCodeText'] | safe}}
+      </small>
+    </div>
+    <div class="form-group">
+      <label for="signer_phone_number">{{ example['Forms'][recipient_form_index]['Inputs'][signer_phone_number_index]['InputName'] }}</label>
+      <input type="tel" class="form-control" id="signer_phone_number" name="signer_phone_number" aria-describedby="accessHelp"
+        placeholder="{{ example['Forms'][recipient_form_index]['Inputs'][signer_phone_number_index]['InputPlaceholder'] }}"
+        required />
+      <small id="accessHelp" class="form-text text-muted">
+        {{ session['manifest']['SupportingTexts']['HelpingTexts']['PhoneNumberWontBeShared'] | safe}}
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label for="cc_name">{{ example['Forms'][recipient_form_index]['Inputs'][cc_name_index]['InputName'] }}</label>
+      <input type="text" class="form-control" id="cc_name"
+        placeholder="{{ example['Forms'][recipient_form_index]['Inputs'][cc_name_index]['InputPlaceholder'] }}"
+        name="cc_name" required>
+    </div>
+    <div class="form-group">
+      <label for="cc_email">{{ example['Forms'][recipient_form_index]['Inputs'][cc_email_index]['InputName'] }}</label>
+      <input type="email" class="form-control" id="cc_email"
+        placeholder="{{ example['Forms'][recipient_form_index]['Inputs'][cc_email_index]['InputPlaceholder'] }}"
+        name="cc_email" required>
+      <small id="ccEmailHelp" class="form-text text-muted">
+        {{ session['manifest']['SupportingTexts']['HelpingTexts']['EmailWontBeShared'] | safe}}
+      </small>
+    </div>
+    
+    <div class="form-group">
+      <label for="cc_country_code">{{ example['Forms'][recipient_form_index]['Inputs'][cc_country_code_index]['InputName'] }}</label>
+      <input type="tel" class="form-control" id="cc_country_code" name="cc_country_code" aria-describedby="accessHelp"
+        placeholder="{{ example['Forms'][recipient_form_index]['Inputs'][cc_country_code_index]['InputPlaceholder'] }}"
+        required />
+      <small id="accessHelp" class="form-text text-muted">
+        {{ session['manifest']['SupportingTexts']['HelpingTexts']['CountryCodeText'] | safe}}
+      </small>
+    </div>
+    <div class="form-group">
+      <label for="cc_phone_number">{{ example['Forms'][recipient_form_index]['Inputs'][cc_phone_number_index]['InputName'] }}</label>
+      <input type="tel" class="form-control" id="cc_phone_number" name="cc_phone_number" aria-describedby="accessHelp"
+        placeholder="{{ example['Forms'][recipient_form_index]['Inputs'][cc_phone_number_index]['InputPlaceholder'] }}"
+        required />
+      <small id="accessHelp" class="form-text text-muted">
+        {{ session['manifest']['SupportingTexts']['HelpingTexts']['PhoneNumberWontBeShared'] | safe}}
+      </small>
+    </div>
+
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    {% include 'submit_button.html' %}
+  </form>
+  
+{% endblock %}
